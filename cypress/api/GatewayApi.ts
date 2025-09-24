@@ -10,8 +10,8 @@ class GatewayApi {
     }
     
     intercepts = {
-        POST_Request: () => cy.intercept('POST', this.BASE_URL).as('POST_Request'),
-        GET_Request: () => cy.intercept('GET', this.BASE_URL).as('GET_Request'),
+        POST_Request: () => cy.intercept('POST', '**/json-rpc/**').as('POST_Request'),
+        GET_Request: () => cy.intercept('GET', '**/json-rpc/**').as('GET_Request'),
     }
 
     /**
@@ -38,7 +38,13 @@ class GatewayApi {
                 id: "QA_e2e"
             }
         }).as('POST_GetAccessToken').then((response) => {
-            return response.body.result.data.accessToken;
+            const accessToken = response.body?.result?.data?.accessToken;
+
+            if(!accessToken) {
+                throw new Error(`GatewayApi: access token missing. Response: ${JSON.stringify(response.body)}`);
+            }
+
+            return accessToken;
         });
     }
 
@@ -60,7 +66,13 @@ class GatewayApi {
                     id: 'QA_e2e',
                 },
             }).as('POST_GetUserInfoLite').then((response: any) => {
-                const ulIds: string[] = response.body.result.data.profiles.map((item: any) => item.ulid);
+                const profiles = response.body?.result?.data?.profiles;
+
+                if(!Array.isArray(profiles)) {
+                    throw new Error(`GatewayApi: profiles missing. Response: ${JSON.stringify(response.body)}`);
+                }
+
+                const ulIds: string[] = profiles.map((item: any) => item.ulid);
                 return cy.wrap(ulIds);
             });
         });

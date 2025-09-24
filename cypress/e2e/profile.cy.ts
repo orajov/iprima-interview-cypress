@@ -1,7 +1,10 @@
-import IprimaPage from "../page/IprimaPage";
+import profilePage from 'cypress/page/profilePage';
+import IprimaPage from '../page/IprimaPage';
 
-describe('', () => {
-  it('', () => {
-    
+describe('Profil', () => {
+  it('Přihlásit uživatele a vyplnit profil', () => {
+    IprimaPage.login();
+    profilePage.clickRegularProfileButton();
+    profilePage.fillProfileForm('Muž');
   });
 });
