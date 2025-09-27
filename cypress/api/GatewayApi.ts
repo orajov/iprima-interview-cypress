@@ -8,7 +8,7 @@ class GatewayApi {
         this.defaultEmail = '';
         this.defaultPassword = '';
     }
-    
+
     intercepts = {
         POST_Request: () => cy.intercept('POST', this.BASE_URL).as('POST_Request'),
         GET_Request: () => cy.intercept('GET', this.BASE_URL).as('GET_Request'),
@@ -38,7 +38,12 @@ class GatewayApi {
                 id: "QA_e2e"
             }
         }).as('POST_GetAccessToken').then((response) => {
-            return response.body.result.data.accessToken;
+            if (response && response.body && response.body.result && response.body.result.data) {
+                return response.body.result.data.accessToken;
+            } else {
+                console.log('No access token found in response');
+                return null;
+            }
         });
     }
 
@@ -50,6 +55,11 @@ class GatewayApi {
      */
     getProfileUlIds(email?: string, password?: string) {
         return this.getAccessToken(email, password).then((accessToken: string) => {
+            if (!accessToken) {
+                console.log('No access token available, skipping profile retrieval');
+                return cy.wrap([]);
+            }
+
             return cy.request({
                 method: 'POST',
                 url: `${this.BASE_URL}`,
@@ -60,8 +70,15 @@ class GatewayApi {
                     id: 'QA_e2e',
                 },
             }).as('POST_GetUserInfoLite').then((response: any) => {
-                const ulIds: string[] = response.body.result.data.profiles.map((item: any) => item.ulid);
-                return cy.wrap(ulIds);
+                // Безопасная проверка всех уровней
+                const profiles = response?.body?.result?.data?.profiles;
+                if (profiles && Array.isArray(profiles)) {
+                    const ulIds: string[] = profiles.map((item: any) => item.ulid || item.id);
+                    return cy.wrap(ulIds);
+                } else {
+                    console.log('No profiles found or invalid response structure');
+                    return cy.wrap([]);
+                }
             });
         });
     }
@@ -75,6 +92,16 @@ class GatewayApi {
      */
     removeProfile(profileUlid: string, email?: string, password?: string) {
         return this.getAccessToken(email, password).then((accessToken: string) => {
+            if (!accessToken) {
+                console.log('No access token available, cannot remove profile');
+                return cy.wrap(null);
+            }
+
+            if (!profileUlid) {
+                console.log('No profile ULID provided, cannot remove profile');
+                return cy.wrap(null);
+            }
+
             return cy.request({
                 method: 'POST',
                 url: `${this.BASE_URL}`,
@@ -87,7 +114,32 @@ class GatewayApi {
                     },
                     id: "QA_e2e"
                 }
-            }).as('POST_RemoveProfile');
+            }).as('POST_RemoveProfile').then((response: any) => {
+                if (response && response.status === 200) {
+                    console.log(`Profile ${profileUlid} removed successfully`);
+                    return cy.wrap(true);
+                } else {
+                    console.log('Failed to remove profile');
+                    return cy.wrap(false);
+                }
+            });
+        });
+    }
+
+    /**
+     * Deletes all user profiles
+     * @param email - user email (optional)
+     * @param password - user password (optional)
+     */
+    removeAllProfiles(email?: string, password?: string) {
+        return this.getProfileUlIds(email, password).then((ulIds: string[]) => {
+            if (ulIds && ulIds.length > 0) {
+                const removalPromises = ulIds.map(ulid => this.removeProfile(ulid, email, password));
+                return Promise.all(removalPromises);
+            } else {
+                console.log('No profiles found to remove');
+                return cy.wrap([]);
+            }
         });
     }
 
