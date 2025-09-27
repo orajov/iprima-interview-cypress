@@ -4,9 +4,19 @@
   "description": "Prima+ Interview Task",
   "author": "Iprima",
   "license": "ISC",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:registration": "cypress run --spec cypress/e2e/user-registration.cy.ts",
+    "cy:run:mailosaur": "cypress run --spec cypress/e2e/registration-mailosaur.cy.ts"
+  },
   "devDependencies": {
     "@types/node": "^20.19.9",
     "cypress": "^13.15.0",
+    "mailosaur": "^8.8.1",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2"
   }
 }
