@@ -70,7 +70,7 @@ class GatewayApi {
                     id: 'QA_e2e',
                 },
             }).as('POST_GetUserInfoLite').then((response: any) => {
-                // Безопасная проверка всех уровней
+                // Savety check
                 const profiles = response?.body?.result?.data?.profiles;
                 if (profiles && Array.isArray(profiles)) {
                     const ulIds: string[] = profiles.map((item: any) => item.ulid || item.id);

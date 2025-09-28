@@ -16,7 +16,7 @@ describe('User Registration with Email Confirmation and Account Deletion', () =>
         cy.visit('https://ucet.iprima.cz/ucet/registrace');
         cy.wait(5000);
 
-        // Обработка cookies banner
+        // cookies banner
         cy.get('body').then(($body) => {
             if ($body.find('#didomi-notice-agree-button').length > 0) {
                 cy.get('#didomi-notice-agree-button').click({ force: true });
@@ -27,27 +27,27 @@ describe('User Registration with Email Confirmation and Account Deletion', () =>
         cy.get('input[type="email"]').type(testEmail);
         cy.get('input[type="password"]').type(testPassword);
 
-        // Выбор пола
+        // choose sex
         cy.get('.select-toggle').first().click();
         cy.get('.select-option').contains('Muž').click();
         cy.wait(500);
 
-        // Выбор года рождения
+        // choose date
         cy.get('.select-toggle').eq(1).click();
         cy.get('.select-option').contains('1990').click();
         cy.wait(500);
 
-        // Имя пользователя
+        // Name
         cy.get('input.input')
             .not('[type="email"]')
             .not('[type="password"]')
             .first()
             .type(testUserName);
 
-        // Чекбокс согласия
+        // Checkbox
         cy.get('input[type="checkbox"]').first().check({ force: true });
 
-        // Отправка формы
+        // Send form
         cy.get('button[type="submit"]').click();
 
         // Step 2: Verify registration success
@@ -79,7 +79,7 @@ describe('User Registration with Email Confirmation and Account Deletion', () =>
                 // Step 7: Wait for profile selection page and select profile
                 cy.contains('Kdo se dívá?', { timeout: 15000 }).should('be.visible');
 
-                // Ищем профиль по имени пользователя "Test User"
+                // Find by name "Test User"
                 cy.contains('button.item .text', testUserName, { timeout: 10000 })
                     .parents('button.item')
                     .click({ force: true });
@@ -105,7 +105,7 @@ describe('User Registration with Email Confirmation and Account Deletion', () =>
                 // Step 10: Verify we are on account settings page and click "Zrušit účet"
                 cy.url().should('include', 'ucet.iprima.cz/moje', { timeout: 10000 });
 
-                // Ждем появления ссылки удаления аккаунта
+                // Wait for link for delete
                 cy.get('a.link[href*="zruseni-uctu"]', { timeout: 10000 })
                     .should('be.visible')
                     .click({ force: true });
